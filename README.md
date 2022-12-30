@@ -37,7 +37,7 @@ python preprocess_flist_config.py
 ```
 3. 生成hubert、f0、mel与stats
 ```shell
-python preprocess_hubert_f0.py && python gen_stats.py
+python preprocess_freevc_f0.py && python gen_stats.py
 ```
 
 执行完以上步骤后 dataset 目录便是预处理完成的数据，可以删除dataset_raw文件夹，

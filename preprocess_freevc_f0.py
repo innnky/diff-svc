@@ -9,6 +9,8 @@ import audio as Audio
 from pyworld import pyworld
 from tqdm import tqdm
 from scipy.io import wavfile
+
+import freevc
 from utils.tools import get_configs_of
 
 import utils.tools
@@ -99,13 +101,13 @@ def process(filename):
     else:
         mel_spectrogram = np.load(mel_path)
 
-    save_name = filename+".soft.npy"
+    save_name = filename+".freevc.npy"
     if not os.path.exists(save_name):
         devive = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         wav, sr = librosa.load(filename+".16k.wav",sr=None)
         assert sr == 16000
         wav = torch.from_numpy(wav).unsqueeze(0).to(devive)
-        c = utils.tools.get_hubert_content(hmodel, wav).cpu().squeeze(0)
+        c = freevc.get_freevc_content(freevc_models, wav).cpu().squeeze(0)
         c = utils.tools.repeat_expand_2d(c, mel_spectrogram.shape[-1]).numpy()
         np.save(save_name,c)
     else:
@@ -123,9 +125,9 @@ if __name__ == "__main__":
     parser.add_argument("--in_dir", type=str, default="dataset/", help="path to input dir")
     args = parser.parse_args()
 
-    print("Loading hubert for content...")
-    hmodel = utils.tools.get_hubert_model(0 if torch.cuda.is_available() else None)
-    print("Loaded hubert.")
+    print("Loading freevc for content...")
+    freevc_models = freevc.get_freevc_model()
+    print("Loaded freevc.")
 
     filenames = glob(f'{args.in_dir}/*/*.wav', recursive=True)#[:10]
     filenames = [i for i in filenames if not i.endswith(".16k.wav")]

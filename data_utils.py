@@ -44,7 +44,7 @@ class Dataset(Dataset):
         mel_path = wavpath + ".mel.npy"
         mel = np.load(mel_path).T
 
-        c_path = wavpath + ".soft.npy"
+        c_path = wavpath + ".freevc.npy"
         c = np.load(c_path).T
         pitch_path = wavpath + ".f0.npy"
         pitch = np.load(pitch_path)

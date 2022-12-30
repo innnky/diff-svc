@@ -2,13 +2,15 @@ import torch
 import torchaudio
 import os
 import torch
-import librosa
-from scipy.io.wavfile import write
 from transformers import WavLMModel
 import freevc.utils
 from freevc.models import SynthesizerTrn
 from freevc.mel_processing import mel_spectrogram_torch
+import logging
 
+logging.getLogger('numba').setLevel(logging.WARNING)
+logging.getLogger('matplotlib').setLevel(logging.WARNING)
+logging.getLogger('urllib3').setLevel(logging.WARNING)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

@@ -1,8 +1,8 @@
 # diff-svc
 基于[DiffSinger非官方仓库](https://github.com/keonlee9420/DiffSinger) 实现的 [diffsvc](https://github.com/prophesier/diff-svc)
 
->（没错又复活了，之前导致弃坑的bug似乎修复了）\
->（暂时依然在开发测试中）
+> 暂时依然在开发测试中, 训练应该是没问题的，但推理脚本目前不太完善，还没整合切片机\
+> 暂时测试的结论是，当数据集人数过多（比如六七十个人）时音色泄漏会加重，而5个人左右音色泄漏和则单人情况基本差不多
 
 ## 简介
 基于Diffsinger + softvc 实现歌声音色转换。相较于原diffsvc仓库，本仓库优缺点如下
@@ -11,6 +11,9 @@
 + 声码器同样使用 [441khz diffsinger社区声码器](https://openvpi.github.io/vocoders/)
 + 不支持加速
 
+提前下载的文件
++ softvc hubert （hubert-soft-0d54a1f4.pt）放在hubert目录下
++ 441khz diffsinger社区声码器 （model）放在hifigan目录下
 ## 数据集准备
 仅需要以以下文件结构将数据集放入dataset_raw目录即可
 ```shell

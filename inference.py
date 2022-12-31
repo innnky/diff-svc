@@ -69,6 +69,7 @@ if __name__ == "__main__":
     parser.add_argument("--model", type=str, required=False, default="naive")
     args = parser.parse_args()
 
+    train_config["path"]["ckpt_path"] = train_config["path"]["ckpt_path"]+"_{}".format(args.model)
     model = get_model(args, configs, device, train=False)
     hmodel = utils.tools.get_hubert_model(0 if torch.cuda.is_available() else None)
     # Load vocoder

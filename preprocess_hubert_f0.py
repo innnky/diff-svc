@@ -9,6 +9,8 @@ import audio as Audio
 from pyworld import pyworld
 from tqdm import tqdm
 from scipy.io import wavfile
+
+import cluster
 from utils.tools import get_configs_of
 
 import utils.tools
@@ -99,14 +101,15 @@ def process(filename):
     else:
         mel_spectrogram = np.load(mel_path)
 
-    save_name = filename+".soft.npy"
+    save_name = filename+".discrete.npy"
     if not os.path.exists(save_name):
         devive = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         wav, sr = librosa.load(filename+".16k.wav",sr=None)
         assert sr == 16000
         wav = torch.from_numpy(wav).unsqueeze(0).to(devive)
-        c = utils.tools.get_hubert_content(hmodel, wav).cpu().squeeze(0)
+        c = utils.tools.get_cn_hubert_units(hmodel, wav).cpu().squeeze(0)
         c = utils.tools.repeat_expand_2d(c, mel_spectrogram.shape[-1]).numpy()
+        c = cluster.get_cluster_result(c.transpose())
         np.save(save_name,c)
     else:
         c = np.load(save_name)
@@ -124,7 +127,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     print("Loading hubert for content...")
-    hmodel = utils.tools.get_hubert_model(0 if torch.cuda.is_available() else None)
+    hmodel = utils.tools.load_cn_model(0 if torch.cuda.is_available() else None)
     print("Loaded hubert.")
 
     filenames = glob(f'{args.in_dir}/*/*.wav', recursive=True)#[:10]

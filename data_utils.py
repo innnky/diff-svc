@@ -44,7 +44,7 @@ class Dataset(Dataset):
         mel_path = wavpath + ".mel.npy"
         mel = np.load(mel_path).T
 
-        c_path = wavpath + ".soft.npy"
+        c_path = wavpath + ".discrete.npy"
         c = np.load(c_path).T
         pitch_path = wavpath + ".f0.npy"
         pitch = np.load(pitch_path)
@@ -81,7 +81,7 @@ class Dataset(Dataset):
 
         speakers = np.array(speakers)
         mels = pad_2D(mels)
-        contents = pad_2D(contents)
+        contents = pad_1D(contents)
         pitches = pad_1D(pitches)
 
         return (

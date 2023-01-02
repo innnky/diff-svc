@@ -124,7 +124,8 @@ class FastspeechEncoder(FFTBlocks):
         self.embed_positions = SinusoidalPositionalEmbedding(
             hidden_size, self.padding_idx, init_size=max_seq_len,
         )
-        self.proj = nn.Conv1d(256, hidden_size, 1)
+        # self.proj = nn.Conv1d(256, hidden_size, 1)
+        self.discrete_emb = nn.Embedding(100, hidden_size)
 
     def forward(self, contents, encoder_padding_mask, spk_emb):
         """
@@ -135,7 +136,7 @@ class FastspeechEncoder(FFTBlocks):
             "encoder_out": [T x B x C]
         }
         """
-        x = self.proj(contents.transpose(1,2)).transpose(1,2)
+        x = self.discrete_emb(contents)
         x += spk_emb
         x = super(FastspeechEncoder, self).forward(x, encoder_padding_mask)
         return x

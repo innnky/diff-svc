@@ -5,9 +5,12 @@ import soundfile
 import librosa
 import torch
 import numpy as np
+
+import cluster
 import utils.tools
 from utils.model import get_model, get_vocoder
 from utils.tools import get_configs_of, to_device
+import json
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
@@ -51,18 +54,21 @@ def getc(filename, hmodel):
     wav = torch.from_numpy(wav).unsqueeze(0).to(devive)
     c = utils.tools.get_cn_hubert_units(hmodel, wav).cpu().squeeze(0)
     c = utils.tools.repeat_expand_2d(c, int((wav.shape[1] * sample_rate / 16000) // hop_len)).numpy()
+    c = cluster.get_cluster_result(c.transpose())
     return c
 
 
 if __name__ == "__main__":
-    speaker_id = 2
     conf_name = "ms"
-    trans = -8
-    src = "raw/再见.wav"
-    ckpt_root = "output/ckpt/cn_hubert_sr"
-    restore_step = 45600
+    spk = "paimon"
+    trans = 7
+    src = "raw/音色测试.wav"
+    ckpt_root = "output/ckpt/discrete"
+    restore_step = 63000
 
-    tgt = src.replace(".wav", f"_{speaker_id}_{trans}_{restore_step}step.wav").replace("raw", "results")
+    spkdict = json.load(open("dataset/speakers.json"))
+    speaker_id = spkdict[spk]
+    tgt = src.replace(".wav", f"_{spk}_{trans}key_{restore_step}step.wav").replace("raw", "results")
     preprocess_config, model_config, train_config = get_configs_of(conf_name)
     train_config["path"]["ckpt_path"] = ckpt_root
     configs = (preprocess_config, model_config, train_config)

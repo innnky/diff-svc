@@ -32,7 +32,10 @@ def load_whisper_model(*args):
 
 def get_whisper_units(model=None, path=None, fp16=False):
     from whisper import log_mel_spectrogram, pad_or_trim
-    mel = log_mel_spectrogram(path).to(device)[:, :3000]
+    wavdata, sr = librosa.load(path, sr=None)
+    if sr != 16000:
+        wavdata = librosa.resample(wavdata, sr, 16000)
+    mel = log_mel_spectrogram(wavdata).to(device)[:, :3000]
     if fp16:
         mel = mel.to(torch.float16)
     feature_len = mel.shape[-1] // 2

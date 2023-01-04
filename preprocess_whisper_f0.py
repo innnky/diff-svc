@@ -119,7 +119,8 @@ def process(filename):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--in_dir", type=str, default="dataset/", help="path to input dir")
+    parser.add_argument("--in_dir", type=str, default="dataset", help="path to input dir")
+    parser.add_argument("--spk", type=str, default="*")
     args = parser.parse_args()
 
     print("Loading hubert for content...")
@@ -127,9 +128,9 @@ if __name__ == "__main__":
     whisper_model = utils.tools.load_whisper_model()
     print("Loaded hubert.")
 
-    filenames = glob(f'{args.in_dir}/*/*.wav', recursive=True)#[:10]
+    filenames = glob(f'{args.in_dir}/{args.spk}/*.wav', recursive=True)#[:10]
     filenames = [i for i in filenames if not i.endswith(".16k.wav")]
-    
+
     for filename in tqdm(filenames):
         process(filename)
     

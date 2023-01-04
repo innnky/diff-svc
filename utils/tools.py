@@ -25,6 +25,21 @@ matplotlib.use("Agg")
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+def load_whisper_model(*args):
+    import whisper
+    model = whisper.load_model("small")
+    return model
+
+def get_whisper_units(model=None, path=None, fp16=False):
+    from whisper import log_mel_spectrogram, pad_or_trim
+    mel = log_mel_spectrogram(path).to(device)[:, :3000]
+    if fp16:
+        mel = mel.to(torch.float16)
+    feature_len = mel.shape[-1] // 2
+    assert  mel.shape[-1] < 3000, "输入音频过长，只允许输入30以内音频"
+    with torch.no_grad():
+        feature = model.encoder(pad_or_trim(mel, 3000).unsqueeze(0))[:1, :feature_len, :].cpu().transpose(1,2)
+    return feature
 
 
 
@@ -65,7 +80,14 @@ def get_cn_hubert_units(con_model, y=None, path=None):
         logits = con_model.extract_features(**inputs)
         feats = con_model.final_proj(logits[0])
     return feats.transpose(1,2)
-
+if __name__ == '__main__':
+    path = 'raw/白鹭霜华.wav'
+    hmodel = load_cn_model()
+    hubertunit = get_cn_hubert_units(hmodel, path=path)
+    print(hubertunit.dtype, hubertunit.shape)
+    whispermodel = load_whisper_model()
+    whispercontent = get_whisper_units(whispermodel, path=path)
+    print(whispercontent.dtype, whispercontent.shape)
 
 def get_hubert_model(rank=None):
 
@@ -112,7 +134,7 @@ def to_device(data, device):
     ) = data
 
     speakers = torch.from_numpy(speakers).long().to(device)
-    contents = torch.from_numpy(contents).long().to(device)
+    contents = torch.from_numpy(contents).float().to(device)
     src_lens = torch.from_numpy(src_lens).to(device)
     mels = torch.from_numpy(mels).float().to(device) if mels is not None else mels
     mel_lens = torch.from_numpy(mel_lens).to(device)

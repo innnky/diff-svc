@@ -6,6 +6,7 @@ import torch
 import numpy as np
 from torch.utils.data import Dataset
 
+import cluster
 from utils.tools import pad_1D, pad_2D
 from utils.pitch_tools import norm_interp_f0, get_lf0_cwt
 
@@ -45,7 +46,7 @@ class Dataset(Dataset):
         mel = np.load(mel_path).T
 
         c_path = wavpath + ".discrete.npy"
-        c = np.load(c_path).T
+        c = cluster.get_center(np.load(c_path)).T
         pitch_path = wavpath + ".f0.npy"
         pitch = np.load(pitch_path)
 
@@ -81,7 +82,7 @@ class Dataset(Dataset):
 
         speakers = np.array(speakers)
         mels = pad_2D(mels)
-        contents = pad_1D(contents)
+        contents = pad_2D(contents)
         pitches = pad_1D(pitches)
 
         return (

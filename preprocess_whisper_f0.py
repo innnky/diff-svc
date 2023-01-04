@@ -103,11 +103,7 @@ def process(filename):
 
     save_name = filename+".discrete.npy"
     if not os.path.exists(save_name):
-        devive = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        wav, sr = librosa.load(filename+".16k.wav",sr=None)
-        assert sr == 16000
-        wav = torch.from_numpy(wav).unsqueeze(0).to(devive)
-        c = utils.tools.get_cn_hubert_units(hmodel, wav).cpu().squeeze(0)
+        c = utils.tools.get_whisper_units(whisper_model, path=filename+".16k.wav", fp16=fp16).cpu().squeeze(0)
         c = utils.tools.repeat_expand_2d(c, mel_spectrogram.shape[-1]).numpy()
         c = cluster.get_cluster_result(c.transpose())
         np.save(save_name,c)
@@ -127,7 +123,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     print("Loading hubert for content...")
-    hmodel = utils.tools.load_cn_model(0 if torch.cuda.is_available() else None)
+    fp16 = True if torch.cuda.is_available() else False
+    whisper_model = utils.tools.load_whisper_model()
     print("Loaded hubert.")
 
     filenames = glob(f'{args.in_dir}/*/*.wav', recursive=True)#[:10]

@@ -1,4 +1,4 @@
-./dataset/yunhao/000268.wav
-./dataset/jishuang/000006.wav
-./dataset/yunhao/000474.wav
-./dataset/jishuang/000013.wav
+./dataset/yunhao/000448.wav
+./dataset/yunhao/000602.wav
+./dataset/jishuang/000004.wav
+./dataset/jishuang/000015.wav

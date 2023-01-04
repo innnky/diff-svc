@@ -46,7 +46,7 @@ class Dataset(Dataset):
         mel = np.load(mel_path).T
 
         c_path = wavpath + ".discrete.npy"
-        c = cluster.get_center(np.load(c_path)).T
+        c = cluster.get_center(np.load(c_path))
         pitch_path = wavpath + ".f0.npy"
         pitch = np.load(pitch_path)
 

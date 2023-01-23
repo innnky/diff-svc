@@ -24,6 +24,7 @@ def main(rank,n_gpus, args, configs):
     os.environ['MASTER_ADDR'] = 'localhost'
     os.environ['MASTER_PORT'] = '60000'
     dist.init_process_group(backend='nccl', init_method='env://', world_size=n_gpus, rank=rank)
+    print("Total GPU:",n_gpus)
     torch.cuda.set_device(rank)
     preprocess_config, model_config, train_config = configs
     # Get dataset

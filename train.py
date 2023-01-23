@@ -34,6 +34,8 @@ def main(args, configs):
         batch_size=batch_size,
         shuffle=True,
         collate_fn=dataset.collate_fn,
+        num_workers=8, 
+        pin_memory=True,
     )
 
     # Prepare model

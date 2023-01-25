@@ -66,7 +66,7 @@ def main(rank,n_gpus, args, configs):
     val_logger = SummaryWriter(val_log_path)
 
     # Training
-    step = args.restore_step + 1
+    step = args.restore_step
     epoch = 1
     grad_acc_step = train_config["optimizer"]["grad_acc_step"]
     grad_clip_thresh = train_config["optimizer"]["grad_clip_thresh"]
@@ -105,7 +105,7 @@ def main(rank,n_gpus, args, configs):
                     lr = optimizer.step_and_update_lr()
                     optimizer.zero_grad()
 
-                if step % log_step == 0:
+                if step % log_step == 0 and rank ==1:
                     losses_ = [sum(l.values()).item() if isinstance(l, dict) else l.item() for l in losses]
                     message1 = "Step {}/{}, ".format(step, total_step)
                     message2 = "Total Loss: {:.4f}, Mel Loss: {:.4f}, Noise Loss: {:.4f}".format(
@@ -119,7 +119,7 @@ def main(rank,n_gpus, args, configs):
 
                     log(train_logger, step, losses=losses, lr=lr)
 
-                if step % synth_step == 0:
+                if step % synth_step == 0 and rank ==1 and step !=0 and step != args.restore_step:
                     assert batch[8][0].shape[0] == batch[5][0].shape[0], (batch[8][0].shape,batch[5][0].shape[0])
 
                     figs, wav_reconstruction, wav_prediction, tag = synth_one_sample(
@@ -156,7 +156,7 @@ def main(rank,n_gpus, args, configs):
                         step=step
                     )
 
-                if step % val_step == 0 and:
+                if step % val_step == 0 and rank ==1 and step !=0 and step != args.restore_step:
                     model.eval()
                     message = evaluate(args, model, step, configs, val_logger, vocoder, losses)
                     with open(os.path.join(val_log_path, "log.txt"), "a") as f:
@@ -165,10 +165,10 @@ def main(rank,n_gpus, args, configs):
 
                     model.train()
 
-                if step % save_step == 0:
+                if step % save_step == 0 and step !=0 and step != args.restore_step:
                     savepath = os.path.join(train_config["path"]["ckpt_path"], "{}.pth.tar".format(step), )
-                    rmpath = os.path.join(train_config["path"]["ckpt_path"], "{}.pth.tar".format(step-10*save_step), )
-                    os.system(f"rm {rmpath}")
+                    #rmpath = os.path.join(train_config["path"]["ckpt_path"], "{}.pth.tar".format(step-3*save_step), )
+                    #os.system(f"rm {rmpath}")
                     torch.save(
                         {
                             "model": model.module.state_dict(),
@@ -179,10 +179,10 @@ def main(rank,n_gpus, args, configs):
 
                 if step >= total_step:
                     quit()
-                step += 1
-                outer_bar.update(n_gpus)
-            if rank == 1:
-               inner_bar.update(n_gpus)
+                step += 2
+                outer_bar.update(2)
+            if rank ==1:
+               inner_bar.update(1)
         epoch += 1
 
 

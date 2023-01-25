@@ -105,7 +105,7 @@ def main(rank,n_gpus, args, configs):
                     lr = optimizer.step_and_update_lr()
                     optimizer.zero_grad()
 
-                if step % log_step == 0 and rank ==0:
+                if step % log_step == 0:
                     losses_ = [sum(l.values()).item() if isinstance(l, dict) else l.item() for l in losses]
                     message1 = "Step {}/{}, ".format(step, total_step)
                     message2 = "Total Loss: {:.4f}, Mel Loss: {:.4f}, Noise Loss: {:.4f}".format(
@@ -119,7 +119,7 @@ def main(rank,n_gpus, args, configs):
 
                     log(train_logger, step, losses=losses, lr=lr)
 
-                if step % synth_step == 0 and rank ==0:
+                if step % synth_step == 0:
                     assert batch[8][0].shape[0] == batch[5][0].shape[0], (batch[8][0].shape,batch[5][0].shape[0])
 
                     figs, wav_reconstruction, wav_prediction, tag = synth_one_sample(
@@ -156,7 +156,7 @@ def main(rank,n_gpus, args, configs):
                         step=step
                     )
 
-                if step % val_step == 0 and rank ==0:
+                if step % val_step == 0 and:
                     model.eval()
                     message = evaluate(args, model, step, configs, val_logger, vocoder, losses)
                     with open(os.path.join(val_log_path, "log.txt"), "a") as f:

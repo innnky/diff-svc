@@ -20,11 +20,12 @@ from evaluate import evaluate
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def main(rank,n_gpus, args, configs):
-    print("Prepare training ...")
+    if rank ==0:
+       print("Prepare training ...")
+       print("Total GPU:",n_gpus)
     os.environ['MASTER_ADDR'] = 'localhost'
     os.environ['MASTER_PORT'] = '60000'
     dist.init_process_group(backend='nccl', init_method='env://', world_size=n_gpus, rank=rank)
-    print("Total GPU:",n_gpus)
     torch.cuda.set_device(rank)
     preprocess_config, model_config, train_config = configs
     # Get dataset
@@ -32,13 +33,15 @@ def main(rank,n_gpus, args, configs):
         preprocess_config["path"]["train_filelist"], preprocess_config, train_config, sort=True, drop_last=True
     )
     batch_size = train_config["optimizer"]["batch_size"]
+    sampler = torch.utils.data.distributed.DistributedSampler(dataset)
     loader = DataLoader(
         dataset,
         batch_size=batch_size,
-        shuffle=True,
+        shuffle=False,
         collate_fn=dataset.collate_fn,
         num_workers=8, 
         pin_memory=True,
+        sampler=sampler,
     )
 
     # Prepare model
@@ -46,7 +49,8 @@ def main(rank,n_gpus, args, configs):
     model = DDP(model)
     num_param = get_param_num(model)
     Loss = DiffSingerLoss(args, preprocess_config, model_config, train_config).to(device)
-    print("Number of DiffSinger Parameters:", num_param)
+    if rank ==0:
+       print("Number of DiffSinger Parameters:", num_param)
 
     # Load vocoder
     vocoder = get_vocoder(model_config, device)
@@ -77,7 +81,8 @@ def main(rank,n_gpus, args, configs):
     outer_bar.update()
 
     while True:
-        inner_bar = tqdm(total=len(loader), desc="Epoch {}".format(epoch), position=1)
+        if rank == 1:
+           inner_bar = tqdm(total=len(loader), desc="Epoch {}".format(epoch), position=1)
         for batchs in loader:
             for batch in batchs:
                 batch = to_device(batch, device)
@@ -100,7 +105,7 @@ def main(rank,n_gpus, args, configs):
                     lr = optimizer.step_and_update_lr()
                     optimizer.zero_grad()
 
-                if step % log_step == 0:
+                if step % log_step == 0 and rank ==0:
                     losses_ = [sum(l.values()).item() if isinstance(l, dict) else l.item() for l in losses]
                     message1 = "Step {}/{}, ".format(step, total_step)
                     message2 = "Total Loss: {:.4f}, Mel Loss: {:.4f}, Noise Loss: {:.4f}".format(
@@ -114,7 +119,7 @@ def main(rank,n_gpus, args, configs):
 
                     log(train_logger, step, losses=losses, lr=lr)
 
-                if step % synth_step == 0:
+                if step % synth_step == 0 and rank ==0:
                     assert batch[8][0].shape[0] == batch[5][0].shape[0], (batch[8][0].shape,batch[5][0].shape[0])
 
                     figs, wav_reconstruction, wav_prediction, tag = synth_one_sample(
@@ -151,7 +156,7 @@ def main(rank,n_gpus, args, configs):
                         step=step
                     )
 
-                if step % val_step == 0:
+                if step % val_step == 0 and rank ==0:
                     model.eval()
                     message = evaluate(args, model, step, configs, val_logger, vocoder, losses)
                     with open(os.path.join(val_log_path, "log.txt"), "a") as f:
@@ -162,7 +167,7 @@ def main(rank,n_gpus, args, configs):
 
                 if step % save_step == 0:
                     savepath = os.path.join(train_config["path"]["ckpt_path"], "{}.pth.tar".format(step), )
-                    rmpath = os.path.join(train_config["path"]["ckpt_path"], "{}.pth.tar".format(step-3*save_step), )
+                    rmpath = os.path.join(train_config["path"]["ckpt_path"], "{}.pth.tar".format(step-10*save_step), )
                     os.system(f"rm {rmpath}")
                     torch.save(
                         {
@@ -175,9 +180,9 @@ def main(rank,n_gpus, args, configs):
                 if step >= total_step:
                     quit()
                 step += 1
-                outer_bar.update(1)
-
-            inner_bar.update(1)
+                outer_bar.update(2)
+            if rank ==1:
+               inner_bar.update(2)
         epoch += 1
 
 

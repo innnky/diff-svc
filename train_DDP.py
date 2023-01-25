@@ -180,9 +180,9 @@ def main(rank,n_gpus, args, configs):
                 if step >= total_step:
                     quit()
                 step += 1
-                outer_bar.update(2)
-            if rank ==1:
-               inner_bar.update(2)
+                outer_bar.update(n_gpus)
+            if rank == 1:
+               inner_bar.update(n_gpus)
         epoch += 1
 
 

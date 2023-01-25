@@ -10,6 +10,7 @@
 + 本仓库基于非官方diffsinger仓库修改实现，代码结构更加简单易懂
 + 声码器同样使用 [441khz diffsinger社区声码器](https://openvpi.github.io/vocoders/)
 + 不支持加速
++ 支持多卡训练
 
 ## 数据集准备
 仅需要以以下文件结构将数据集放入dataset_raw目录即可

@@ -48,6 +48,9 @@ python preprocess_hubert_f0.py && python gen_stats.py
 ```shell
 python3 train.py --model naive --dataset ms --restore_step RESTORE_STEP 
 ```
-
+## 或是使用多卡加速训练
+```shell
+python3 train_DDP.py --model naive --dataset ms --restore_step RESTORE_STEP 
+```
 ## 推理
 [inference.py](inference.py)

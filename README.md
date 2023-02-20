@@ -1,7 +1,8 @@
 # diff-svc
 基于[DiffSinger非官方仓库](https://github.com/keonlee9420/DiffSinger) 实现的 [diffsvc](https://github.com/prophesier/diff-svc)
 
-> 暂时依然在开发测试中, 训练应该是没问题的，但推理脚本目前不太完善，还没整合切片机\
+> 该模型已经弃坑，训练diffsvc可以去[openvpi维护的版本](https://github.com/openvpi/diff-svc) 或是 [冷月佬维护的版本](https://github.com/fishaudio/fish-diffusion)
+> 暂时依然~在开发测试中~ （已经弃坑）, 训练应该是没问题的，但推理脚本目前不太完善，还没整合切片机\
 > 暂时测试的结论是，当数据集人数过多（比如六七十个人）时音色泄漏会加重，而5个人左右音色泄漏和则单人情况基本差不多\
 > 目前可以看到有一堆分支，都是在测试中的各种方案 \
 > sr分支（中文hubert+freevc数据增强5倍）:中文hubert优化了咬字，数据增强缓解了音色泄漏以及变调问题 \
